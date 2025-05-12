@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DEA UI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <h1>🚨 DEA Suspect Tracker</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Heat</th><th>Distance</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="suspectTable">
+        <tr><td colspan="4">Loading...</td></tr>
+      </tbody>
+    </table>
+    <button onclick="fetchNUIData()">🔁 Refresh</button>
+    <button onclick="closeUI()">Close</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
