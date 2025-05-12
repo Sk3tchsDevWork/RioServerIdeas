@@ -199,3 +199,133 @@ QBCore.Commands.Add("givetablet", "Give DEA Tablet (admin only)", {{name="id", h
         TriggerClientEvent("QBCore:Notify", source, "Tablet given to ID " .. id, "success")
     end
 end, "admin")
+
+-------------------------------------
+-- 🚁 Surveillance Drone for DEA
+-------------------------------------
+RegisterNetEvent("qb-growupgrades:server:deployDrone", function()
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    local job = Player.PlayerData.job.name
+    if not job or not Config.AllowedJobs[job] then
+        TriggerClientEvent("QBCore:Notify", src, "You are not authorized to deploy a drone.", "error")
+        return
+    end
+
+    TriggerClientEvent("qb-growupgrades:client:spawnDrone", src)
+end)
+
+-------------------------------------
+-- 🔥 Player Tracking for DEA
+-------------------------------------
+lib.callback.register("qb-growupgrades:server:getFlaggedPlayers", function(source)
+    local flaggedPlayers = {}
+    for _, player in pairs(QBCore.Functions.GetPlayers()) do
+        local Player = QBCore.Functions.GetPlayer(player)
+        if Player then
+            local heat = exports['qb-heatlevel']:GetPlayerHeat(player)
+            if heat and heat > Config.HeatThreshold then
+                table.insert(flaggedPlayers, {
+                    id = Player.PlayerData.citizenid,
+                    name = Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname,
+                    coords = GetEntityCoords(GetPlayerPed(player)),
+                    heat = heat
+                })
+            end
+        end
+    end
+    return flaggedPlayers
+end)
+
+-------------------------------------
+-- 🛑 Evidence Collection for DEA
+-------------------------------------
+RegisterNetEvent("qb-growupgrades:server:collectEvidence", function(plantId)
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    local job = Player.PlayerData.job.name
+    if not job or not Config.AllowedJobs[job] then
+        TriggerClientEvent("QBCore:Notify", src, "You are not authorized to collect evidence.", "error")
+        return
+    end
+
+    if not BunkerPlants[plantId] then
+        TriggerClientEvent("QBCore:Notify", src, "No evidence found at this location.", "error")
+        return
+    end
+
+    BunkerPlants[plantId] = nil
+    TriggerClientEvent("qb-growupgrades:client:removePlant", -1, plantId)
+    TriggerClientEvent("QBCore:Notify", src, "Evidence collected successfully.", "success")
+end)
+
+-------------------------------------
+-- 🛡️ Stealth Upgrades for Drug Lords
+-------------------------------------
+RegisterNetEvent("qb-growupgrades:server:purchaseUpgrade", function(upgrade)
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    local upgradeConfig = Config.StealthUpgrades[upgrade]
+    if not upgradeConfig then
+        TriggerClientEvent("QBCore:Notify", src, "Invalid upgrade.", "error")
+        return
+    end
+
+    if Player.Functions.RemoveMoney("cash", upgradeConfig.cost) then
+        Player.Functions.AddItem(upgrade, 1)
+        TriggerClientEvent("QBCore:Notify", src, upgradeConfig.label .. " purchased successfully.", "success")
+    else
+        TriggerClientEvent("QBCore:Notify", src, "Not enough money.", "error")
+    end
+end)
+
+-------------------------------------
+-- 🚧 DEA Checkpoints
+-------------------------------------
+RegisterNetEvent("qb-growupgrades:server:createCheckpoint", function(coords)
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    local job = Player.PlayerData.job.name
+    if not job or not Config.AllowedJobs[job] then
+        TriggerClientEvent("QBCore:Notify", src, "You are not authorized to create checkpoints.", "error")
+        return
+    end
+
+    TriggerClientEvent("qb-growupgrades:client:spawnCheckpoint", -1, coords)
+end)
+
+-------------------------------------
+-- 🚚 Drug Shipments
+-------------------------------------
+RegisterNetEvent("qb-growupgrades:server:startShipment", function()
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    TriggerClientEvent("qb-growupgrades:client:startShipment", src)
+    TriggerClientEvent("QBCore:Notify", -1, "A drug shipment is in progress. DEA agents, intercept it!", "info")
+end)
+
+-------------------------------------
+-- 💰 Bribery System
+-------------------------------------
+RegisterNetEvent("qb-growupgrades:server:bribe", function(amount)
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    if Player.Functions.RemoveMoney("cash", amount) then
+        exports['qb-heatlevel']:ReducePlayerHeat(src, amount / 100) -- Reduce heat based on bribe amount
+        TriggerClientEvent("QBCore:Notify", src, "Bribe successful. Heat reduced.", "success")
+    else
+        TriggerClientEvent("QBCore:Notify", src, "Not enough money for a bribe.", "error")
+    end
+end)

@@ -110,3 +110,14 @@ Config.TabletItem = "dea_tablet" -- Item required to use the DEA tablet
 -- 🔥 Heat System
 -------------------------------------
 Config.HeatThreshold = 50 -- Heat level at which players are flagged for DEA attention
+
+Config.StealthUpgrades = {
+    ["heat_reduction"] = {
+        label = "Heat Reduction",
+        cost = 5000,
+        reduction = 10 -- Reduces heat by 10%
+    }
+}
+
+Config.CheckpointRadius = 10.0 -- Radius for DEA checkpoints
+Config.ShipmentReward = 10000 -- Reward for completing a shipment

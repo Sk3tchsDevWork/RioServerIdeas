@@ -267,3 +267,105 @@ RegisterNetEvent("qb-growupgrades:client:lookupPlayerIntel", function()
         end
     end
 end)
+
+RegisterNetEvent("qb-growupgrades:client:spawnDrone", function()
+    local playerPed = PlayerPedId()
+    local coords = GetEntityCoords(playerPed)
+
+    -- Spawn the drone
+    local droneModel = `prop_drone_01`
+    RequestModel(droneModel)
+    while not HasModelLoaded(droneModel) do
+        Wait(10)
+    end
+
+    local drone = CreateVehicle(droneModel, coords.x, coords.y, coords.z + 2.0, 0.0, true, false)
+    SetEntityAsMissionEntity(drone, true, true)
+    SetVehicleEngineOn(drone, true, true, false)
+
+    -- Attach the player to the drone
+    TaskWarpPedIntoVehicle(playerPed, drone, -1)
+
+    -- Notify the player
+    QBCore.Functions.Notify("Drone deployed. Use it to scout the area.", "success")
+end)
+
+RegisterNetEvent("qb-growupgrades:client:spawnCheckpoint", function(coords)
+    local checkpoint = AddBlipForRadius(coords.x, coords.y, coords.z, Config.CheckpointRadius)
+    SetBlipColour(checkpoint, 1) -- Red color
+    SetBlipAlpha(checkpoint, 128)
+
+    -- Notify the player
+    QBCore.Functions.Notify("Checkpoint created. Search vehicles within the area.", "info")
+
+    -- Monitor vehicles in the area
+    CreateThread(function()
+        while DoesBlipExist(checkpoint) do
+            local playerPed = PlayerPedId()
+            local playerCoords = GetEntityCoords(playerPed)
+
+            if #(playerCoords - coords) < Config.CheckpointRadius then
+                local vehicle = GetVehiclePedIsIn(playerPed, false)
+                if vehicle ~= 0 then
+                    QBCore.Functions.Notify("Vehicle detected. Interact to search.", "info")
+                    -- Add interaction logic here
+                end
+            end
+
+            Wait(1000)
+        end
+    end)
+end)
+
+RegisterNetEvent("qb-growupgrades:client:startShipment", function()
+    local playerPed = PlayerPedId()
+    local startCoords = GetEntityCoords(playerPed)
+    local endCoords = vector3(2000.0, 3000.0, 40.0) -- Example delivery location
+
+    -- Create a blip for the delivery location
+    local deliveryBlip = AddBlipForCoord(endCoords)
+    SetBlipSprite(deliveryBlip, 1)
+    SetBlipColour(deliveryBlip, 2) -- Green color
+    SetBlipRoute(deliveryBlip, true)
+
+    -- Notify the player
+    QBCore.Functions.Notify("Deliver the shipment to the marked location.", "success")
+
+    -- Monitor delivery
+    CreateThread(function()
+        while true do
+            local playerCoords = GetEntityCoords(playerPed)
+            if #(playerCoords - endCoords) < 10.0 then
+                QBCore.Functions.Notify("Shipment delivered successfully!", "success")
+                RemoveBlip(deliveryBlip)
+                TriggerServerEvent("qb-growupgrades:server:completeShipment")
+                break
+            end
+            Wait(1000)
+        end
+    end)
+end)
+
+RegisterNetEvent("qb-growupgrades:client:removePlant", function(plantId)
+    -- Remove the plant from the world
+    local plant = BunkerPlants[plantId]
+    if plant then
+        DeleteEntity(plant)
+        BunkerPlants[plantId] = nil
+        QBCore.Functions.Notify("Evidence collected and plant removed.", "success")
+    end
+end)
+
+RegisterNetEvent("qb-growupgrades:client:bribeNPC", function()
+    local playerPed = PlayerPedId()
+    local coords = GetEntityCoords(playerPed)
+
+    -- Find nearby NPCs
+    local npc = GetClosestPed(coords.x, coords.y, coords.z, 5.0, true, false, false, false, false, false)
+    if npc then
+        -- Trigger the server event to process the bribe
+        TriggerServerEvent("qb-growupgrades:server:bribe", 5000) -- Example bribe amount
+    else
+        QBCore.Functions.Notify("No NPCs nearby to bribe.", "error")
+    end
+end)
