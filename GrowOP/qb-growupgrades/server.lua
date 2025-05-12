@@ -285,6 +285,28 @@ RegisterNetEvent("qb-growupgrades:server:purchaseUpgrade", function(upgrade)
     end
 end)
 
+local function applyStealthUpgrades(player, baseHeat)
+    local upgrades = player.Functions.GetItemsByName("heat_reduction")
+    if upgrades and #upgrades > 0 then
+        for _, upgrade in ipairs(upgrades) do
+            baseHeat = baseHeat * (1 - (Config.StealthUpgrades["heat_reduction"].reduction / 100))
+        end
+    end
+    return baseHeat
+end
+
+RegisterNetEvent("qb-growupgrades:server:generateHeat", function(action)
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    local baseHeat = Config.HeatValues[action] or 0
+    local finalHeat = applyStealthUpgrades(Player, baseHeat)
+
+    exports['qb-heatlevel']:AddPlayerHeat(src, finalHeat)
+    TriggerClientEvent("QBCore:Notify", src, "Heat generated: " .. math.floor(finalHeat), "info")
+end)
+
 -------------------------------------
 -- 🚧 DEA Checkpoints
 -------------------------------------
@@ -300,6 +322,21 @@ RegisterNetEvent("qb-growupgrades:server:createCheckpoint", function(coords)
     end
 
     TriggerClientEvent("qb-growupgrades:client:spawnCheckpoint", -1, coords)
+end)
+
+RegisterNetEvent("qb-growupgrades:server:searchVehicle", function(plate)
+    local src = source
+    local Player = validatePlayer(src)
+    if not Player then return end
+
+    -- Example logic: Check if the vehicle is carrying drugs
+    local isCarryingDrugs = math.random(1, 100) <= 50 -- 50% chance
+    if isCarryingDrugs then
+        TriggerClientEvent("QBCore:Notify", src, "Drugs found in the vehicle!", "success")
+        -- Add logic to confiscate drugs or arrest the player
+    else
+        TriggerClientEvent("QBCore:Notify", src, "No drugs found in the vehicle.", "info")
+    end
 end)
 
 -------------------------------------

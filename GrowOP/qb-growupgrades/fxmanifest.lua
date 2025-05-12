@@ -1,17 +1,19 @@
 fx_version 'cerulean'
 game 'gta5'
 
-description 'Grow System Expansion: Bunker & Upgrades'
+author 'Sk3tch'
+description 'DEA vs Drug Lords - Grow Upgrades'
 version '1.0.0'
 
-client_scripts {
-    'client.lua'
-}
+shared_script 'config.lua'
+client_script 'client.lua'
+server_script 'server.lua'
 
-server_scripts {
-    'server.lua'
-}
-
-shared_scripts {
-    'config.lua'
+dependencies {
+    'qb-core',
+    'qb-menu',
+    'qb-input',
+    'qb-target',
+    'qb-heatlevel',
+    'ps-ui'
 }

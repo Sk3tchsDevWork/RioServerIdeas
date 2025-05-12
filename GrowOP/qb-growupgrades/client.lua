@@ -166,44 +166,26 @@ RegisterCommand("deatablet", function()
     end)
 end)
 
-RegisterNetEvent("qb-growupgrades:client:openDEATabletMenu", function()
-    exports['qb-menu']:openMenu({
-        {
-            header = "📊 Heat Panel",
-            txt = "Track players with high heat",
-            params = {
-                event = "qb-growupgrades:client:tabletHeatMenu"
-            }
-        },
-        {
-            header = "🚨 Raid Management",
-            txt = "Trigger raid on heat suspects",
-            params = {
-                event = "qb-growupgrades:client:tabletHeatMenu"
-            }
-        },
-        {
-            header = "🧠 Player Lookup",
-            txt = "Search by Citizen ID",
-            params = {
-                event = "qb-growupgrades:client:lookupPlayerIntel"
-            }
-        },
-        {
-            header = "🛰️ Surveillance",
-            txt = "Scan heroin fields nearby",
-            params = {
-                event = "",
-                onSelect = function()
-                    ExecuteCommand("scanheroin")
-                end
-            }
-        },
-        {
-            header = "📁 Evidence Logs (WIP)",
-            disabled = true
-        }
-    })
+RegisterNetEvent("qb-growupgrades:client:openTablet", function()
+    lib.callback("qb-growupgrades:server:getFlaggedPlayers", false, function(flaggedPlayers)
+        if flaggedPlayers and #flaggedPlayers > 0 then
+            local playerList = {}
+            for _, player in ipairs(flaggedPlayers) do
+                table.insert(playerList, {
+                    label = player.name .. " (Heat: " .. player.heat .. ")",
+                    coords = player.coords
+                })
+            end
+
+            -- Open the tablet UI with the flagged players
+            exports['qb-menu']:openMenu({
+                { header = "Flagged Players", isMenuHeader = true },
+                table.unpack(playerList)
+            })
+        else
+            QBCore.Functions.Notify("No flagged players found.", "info")
+        end
+    end)
 end)
 
 RegisterNetEvent("qb-growupgrades:client:tabletHeatMenu", function()
@@ -307,8 +289,10 @@ RegisterNetEvent("qb-growupgrades:client:spawnCheckpoint", function(coords)
             if #(playerCoords - coords) < Config.CheckpointRadius then
                 local vehicle = GetVehiclePedIsIn(playerPed, false)
                 if vehicle ~= 0 then
-                    QBCore.Functions.Notify("Vehicle detected. Interact to search.", "info")
-                    -- Add interaction logic here
+                    QBCore.Functions.Notify("Press [E] to search the vehicle.", "info")
+                    if IsControlJustPressed(0, 38) then -- E key
+                        TriggerServerEvent("qb-growupgrades:server:searchVehicle", GetVehicleNumberPlateText(vehicle))
+                    end
                 end
             end
 

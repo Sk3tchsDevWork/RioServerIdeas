@@ -54,10 +54,10 @@ Config.MethLab = {
         { name = "chem_kit", amount = 1 }
     },
     time = 10000, -- Time in milliseconds to complete meth cooking
-    successYield = 2, -- Amount of meth produced on success
-    failExplodeChance = 35, -- Percentage chance of explosion on failure
+    successYield = 3, -- Increased yield for better rewards
+    failExplodeChance = 25 -- Reduced explosion chance for fairness
     reward = "meth_bag",
-    cooldownMinutes = 20, -- Cooldown time in minutes between meth cooking attempts
+    cooldownMinutes = 30, -- Increased cooldown for balance
     heatIncrease = 25 -- Heat added to the player on successful meth cooking
 }
 
@@ -114,10 +114,16 @@ Config.HeatThreshold = 50 -- Heat level at which players are flagged for DEA att
 Config.StealthUpgrades = {
     ["heat_reduction"] = {
         label = "Heat Reduction",
-        cost = 5000,
-        reduction = 10 -- Reduces heat by 10%
+        cost = 7500, -- Increased cost for balance
+        reduction = 15 -- Increased reduction for better effect
     }
 }
 
+Config.HeatValues = {
+    plantCrop = 10,
+    cookMeth = 25,
+    sellDrugs = 15
+}
+
 Config.CheckpointRadius = 10.0 -- Radius for DEA checkpoints
-Config.ShipmentReward = 10000 -- Reward for completing a shipment
+Config.ShipmentReward = 15000 -- Increased reward for shipments
