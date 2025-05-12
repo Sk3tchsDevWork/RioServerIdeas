@@ -24,6 +24,7 @@ local function validatePlayer(src)
     return Player
 end
 
+
 -------------------------------------
 -- 🧪 Grow System + Tier Unlocks
 -------------------------------------
@@ -62,6 +63,13 @@ RegisterNetEvent('qb-growupgrades:server:plantCrop', function(coords, cropType)
         TriggerClientEvent('QBCore:Notify', src, "Failed to plant crop. Try again later.", "error")
         return
     end
+
+    CreateThread(function()
+    while true do
+        MySQL.query("DELETE FROM bunker_plants WHERE plantedAt < ?", { os.time() - (24 * 60 * 60) }) -- Remove plants older than 24 hours
+        Wait(3600000) -- Run cleanup every hour
+    end
+end)
 
     BunkerPlants[id] = {
         coords = coords,
