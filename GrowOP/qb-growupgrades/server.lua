@@ -374,3 +374,41 @@ RegisterNetEvent("qb-growupgrades:server:bribe", function(amount)
         TriggerClientEvent("QBCore:Notify", src, "Not enough money for a bribe.", "error")
     end
 end)
+
+-- [GEN2 SERVER ADDITIONS: REP, RADIO, EVIDENCE]
+local DroneCooldowns = {}
+local CartelRep = {}
+local EvidenceLogs = {}
+
+QBCore.Functions.CreateCallback("qb-growupgrades:server:getDroneCooldown", function(src, cb)
+    cb(os.time() - (DroneCooldowns[src] or 0) < Config.Drone.cooldownMinutes * 60)
+end)
+
+RegisterNetEvent("qb-growupgrades:server:droneScan", function(pos, range)
+    DroneCooldowns[source] = os.time()
+    TriggerClientEvent("QBCore:Notify", source, "Drone scan complete (placeholder).", "primary")
+end)
+
+RegisterNetEvent("qb-growupgrades:server:cartelRadio", function(msg)
+    for _, ply in pairs(QBCore.Functions.GetPlayers()) do
+        local P = QBCore.Functions.GetPlayer(ply)
+        if P and P.PlayerData.job.name == "dea" then
+            TriggerClientEvent("QBCore:Notify", ply, "[INTERCEPTED RADIO]: " .. msg, "error")
+        end
+    end
+end)
+
+RegisterNetEvent("qb-growupgrades:server:addEvidence", function(cid, item)
+    EvidenceLogs[#EvidenceLogs+1] = { cid = cid, item = item, time = os.time() }
+end)
+
+QBCore.Functions.CreateCallback("qb-growupgrades:server:getEvidence", function(_, cb)
+    cb(EvidenceLogs)
+end)
+
+RegisterNetEvent("qb-growupgrades:server:addRep", function(amount)
+    local ply = QBCore.Functions.GetPlayer(source)
+    local cid = ply.PlayerData.citizenid
+    CartelRep[cid] = (CartelRep[cid] or 0) + amount
+    TriggerClientEvent("QBCore:Notify", source, "Cartel rep increased: +" .. amount)
+end)

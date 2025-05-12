@@ -353,3 +353,34 @@ RegisterNetEvent("qb-growupgrades:client:bribeNPC", function()
         QBCore.Functions.Notify("No NPCs nearby to bribe.", "error")
     end
 end)
+
+
+-- [GEN2 CARTEL RADIO + DRONE + EVIDENCE UI]
+RegisterCommand("cartelradio", function(_, args)
+    local msg = table.concat(args, " ")
+    if msg and msg ~= "" then
+        TriggerServerEvent("qb-growupgrades:server:cartelRadio", msg)
+    end
+end)
+
+RegisterNetEvent("qb-growupgrades:client:launchDrone", function()
+    local cooldown = lib.callback.await("qb-growupgrades:server:getDroneCooldown", false)
+    if cooldown then
+        QBCore.Functions.Notify("Drone cooldown active.", "error")
+        return
+    end
+    local pos = GetEntityCoords(PlayerPedId())
+    TriggerServerEvent("qb-growupgrades:server:droneScan", pos, Config.Drone.scanRange)
+    QBCore.Functions.Notify("Drone launched.")
+end)
+
+RegisterNetEvent("qb-growupgrades:client:viewEvidence", function()
+    local info = lib.callback.await("qb-growupgrades:server:getEvidence", false)
+    if not info or #info == 0 then
+        QBCore.Functions.Notify("No evidence on file.", "error")
+        return
+    end
+    for _, record in pairs(info) do
+        QBCore.Functions.Notify("[" .. record.cid .. "] - " .. record.item)
+    end
+end)

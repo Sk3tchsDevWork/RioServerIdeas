@@ -127,3 +127,14 @@ Config.HeatValues = {
 
 Config.CheckpointRadius = 10.0 -- Radius for DEA checkpoints
 Config.ShipmentReward = 15000 -- Increased reward for shipments
+
+-- [GEN2 ADDED CONFIG]
+Config.Drone = { scanRange = 60.0, cooldownMinutes = 10 }
+Config.CartelRepTiers = {
+    { amount = 50, reward = "grow_speed_boost" },
+    { amount = 100, reward = "reduced_heat" },
+    { amount = 200, reward = "sale_bonus" }
+}
+Config.EvidenceItems = { "coke_bag", "heroin_bag", "grow_docs", "meth_tray" }
+Config.HeatRaidThreshold = 80
+Config.HeatRaidCount = 4
