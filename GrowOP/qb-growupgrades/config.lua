@@ -1,4 +1,3 @@
-
 -------------------------------------
 -- 🧪 Plant Types & Tier Unlocks
 -------------------------------------
@@ -10,7 +9,7 @@ Config.PlantTypes = {
             medium = `prop_weed_02`,
             large = `prop_weed_03`
         },
-        requiredHarvests = 0
+        requiredHarvests = 0 -- Number of harvests required to unlock this plant type
     },
     ["mushroom"] = {
         label = "Mushrooms",
@@ -54,35 +53,36 @@ Config.MethLab = {
         { name = "pseudoephedrine", amount = 1 },
         { name = "chem_kit", amount = 1 }
     },
-    time = 10000,
-    successYield = 2,
-    failExplodeChance = 35,
+    time = 10000, -- Time in milliseconds to complete meth cooking
+    successYield = 2, -- Amount of meth produced on success
+    failExplodeChance = 35, -- Percentage chance of explosion on failure
     reward = "meth_bag",
-    cooldownMinutes = 20,
-    heatIncrease = 25
+    cooldownMinutes = 20, -- Cooldown time in minutes between meth cooking attempts
+    heatIncrease = 25 -- Heat added to the player on successful meth cooking
 }
 
 -------------------------------------
 -- 💉 Heroin Field Configuration
 -------------------------------------
 Config.HeroinFields = {
-    vector3(2942.1, 4624.5, 48.7),
-    vector3(2880.6, 4571.8, 47.0)
+    { coords = vector3(2942.1, 4624.5, 48.7), label = "Northern Field" },
+    { coords = vector3(2880.6, 4571.8, 47.0), label = "Eastern Field" }
 }
 
 Config.HeroinGrow = {
-    seedItem = "poppy_seed",
-    growTime = 15 * 60,
-    yield = 2,
-    maxPlants = 6,
-    heatPerPlant = 10
+    seedItem = "poppy_seed", -- Item required to plant heroin
+    growTime = 15 * 60, -- Time in seconds for the plant to grow
+    yield = 2, -- Amount of heroin produced per plant
+    maxPlants = 6, -- Maximum number of plants a player can grow
+    heatPerPlant = 10, -- Heat generated per plant
+    cooldownMinutes = 10 -- Cooldown time in minutes between planting attempts
 }
 
 -------------------------------------
 -- 🧪 LSD Lab
 -------------------------------------
 Config.LabLocations = {
-    lsd = vector3(1025.3, -2287.6, 30.6)
+    lsd = vector3(1025.3, -2287.6, 30.6) -- Location of the LSD lab
 }
 
 Config.LabRequirements = {
@@ -91,9 +91,9 @@ Config.LabRequirements = {
             { name = "acid", amount = 1 },
             { name = "mushroom_spore", amount = 2 }
         },
-        craftTime = 10000,
-        reward = "lsd_bag",
-        rewardAmount = 2
+        craftTime = 10000, -- Time in milliseconds to craft LSD
+        reward = "lsd_bag", -- Item rewarded on successful crafting
+        rewardAmount = 2 -- Amount of the reward item
     }
 }
 
@@ -101,7 +101,12 @@ Config.LabRequirements = {
 -- 🛑 DEA Tablet Access
 -------------------------------------
 Config.AllowedJobs = {
-    "dea"
+    "dea", "police", "fbi" -- Jobs allowed to access the DEA tablet
 }
 
-Config.TabletItem = "dea_tablet"
+Config.TabletItem = "dea_tablet" -- Item required to use the DEA tablet
+
+-------------------------------------
+-- 🔥 Heat System
+-------------------------------------
+Config.HeatThreshold = 50 -- Heat level at which players are flagged for DEA attention
