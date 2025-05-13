@@ -35,6 +35,40 @@ RegisterNetEvent('qb-growupgrades:server:applyUpgrade', function(plantId, upgrad
 end)
 
 -------------------------------------
+-- 🪴 Grow Stage Handler (based on time and upgrades)
+-------------------------------------
+CreateThread(function()
+    while true do
+        Wait(60000) -- Check every 60 seconds
+        for id, plant in pairs(BunkerPlants) do
+            local timeAlive = os.time() - plant.plantedAt
+            local timeRequired = 900 -- 15 min default per stage
+
+            for _, upg in ipairs(plant.upgrades or {}) do
+                if Config.Upgrades[upg] and Config.Upgrades[upg].timeMultiplier then
+                    timeRequired = timeRequired * Config.Upgrades[upg].timeMultiplier
+                end
+            end
+
+            local newStage = plant.stage
+            if timeAlive >= timeRequired * 3 then newStage = "large"
+            elseif timeAlive >= timeRequired * 2 then newStage = "medium"
+            elseif timeAlive >= timeRequired then newStage = "small" end
+
+            if newStage ~= plant.stage then
+                plant.stage = newStage
+                MySQL.update('UPDATE bunker_plants SET stage = ? WHERE id = ?', { newStage, id })
+                TriggerClientEvent('qb-growupgrades:client:spawnPlantType', -1, id, plant.coords, newStage, plant.cropType)
+            end
+
+            -- Update visual indicator
+            local timeLeft = math.max(0, (timeRequired * 3) - timeAlive)
+            TriggerClientEvent('qb-growupgrades:client:updatePlantTimer', plant.owner, id, timeLeft)
+        end
+    end
+end)
+
+-------------------------------------
 -- 🧪 Reapply Upgrades on Load
 -------------------------------------
 CreateThread(function()
@@ -101,3 +135,4 @@ RegisterCommand("debugPlantList", function(source)
         end
     end
 end, false)
+
