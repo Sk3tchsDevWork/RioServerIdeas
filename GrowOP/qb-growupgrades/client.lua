@@ -1,5 +1,44 @@
 local spawnedPlants = {}
 
+RegisterNUICallback("closeTablet", function(_, cb)
+    SetNuiFocus(false, false)
+    cb({})
+end)
+
+RegisterNUICallback("setWaypoint", function(data, cb)
+    SetNewWaypoint(data.x, data.y)
+    QBCore.Functions.Notify("Waypoint set.", "success")
+    cb({})
+end)
+
+RegisterNUICallback("triggerRaid", function(data, cb)
+    TriggerServerEvent("qb-growupgrades:server:markForRaid", data.playerId)
+    cb({})
+end)
+
+RegisterNUICallback("launchDrone", function(_, cb)
+    local pos = GetEntityCoords(PlayerPedId())
+    TriggerServerEvent("qb-growupgrades:server:droneScan", pos, Config.Drone.scanRange)
+    QBCore.Functions.Notify("Drone launched.", "success")
+    cb({})
+end)
+
+RegisterCommand("deatablet", function()
+    QBCore.Functions.TriggerCallback("qb-growupgrades:server:isDEA", function(allowed)
+        if not allowed then
+            QBCore.Functions.Notify("Access denied. DEA only.", "error")
+            return
+        end
+
+        -- Replace qb-menu with NUI
+        SetNuiFocus(true, true)
+        SendNUIMessage({
+            action = "openTablet",
+            data = {} -- You can inject suspect lists, evidence logs, etc. here
+        })
+    end)
+end)
+
 -------------------------------------
 -- 🌿 Planting & Interaction
 -------------------------------------
@@ -34,6 +73,7 @@ RegisterNetEvent('qb-growupgrades:client:removePlant', function(plantId)
     if spawnedPlants[plantId] then
         DeleteEntity(spawnedPlants[plantId])
         spawnedPlants[plantId] = nil
+        QBCore.Functions.Notify("Evidence collected and plant removed.", "success")
     end
 end)
 
@@ -77,9 +117,25 @@ end)
 
 RegisterNetEvent("qb-growupgrades:client:startMethCook", function()
     exports['ps-ui']:Circle(function(success)
+        if success then
+            TriggerServerEvent("qb-growupgrades:server:completeMethCook", true)
+        else
+            -- Simulate explosion failure
+            AddExplosion(GetEntityCoords(PlayerPedId()), 2, 5.0, true, false, 1.0)
+            ApplyDamageToPed(PlayerPedId(), 50, false)
+            QBCore.Functions.Notify("You failed the cook and caused an explosion!", "error")
+            TriggerServerEvent("qb-growupgrades:server:completeMethCook", false)
+        end
+    end, 2, 10)
+end)
+
+RegisterNetEvent("qb-growupgrades:client:startMethCook", function()
+    exports['ps-ui']:Circle(function(success)
         TriggerServerEvent("qb-growupgrades:server:completeMethCook", success)
     end, 2, 10)
 end)
+
+
 
 -------------------------------------
 -- 💉 Heroin Grow Plant
@@ -162,72 +218,39 @@ RegisterCommand("deatablet", function()
             QBCore.Functions.Notify("Access denied. DEA only.", "error")
             return
         end
-        TriggerEvent("qb-growupgrades:client:openDEATabletMenu")
-    end)
-end)
 
-RegisterNetEvent("qb-growupgrades:client:openTablet", function()
-    lib.callback("qb-growupgrades:server:getFlaggedPlayers", false, function(flaggedPlayers)
-        if flaggedPlayers and #flaggedPlayers > 0 then
-            local playerList = {}
-            for _, player in ipairs(flaggedPlayers) do
-                table.insert(playerList, {
-                    label = player.name .. " (Heat: " .. player.heat .. ")",
-                    coords = player.coords
+        local function openMainTablet()
+            exports['qb-menu']:openMenu({
+                { header = "DEA Tablet", isMenuHeader = true },
+                { header = "🔍 Flagged Players", txt = "View heat levels", params = { event = "qb-growupgrades:client:tabletHeatMenu" } },
+                { header = "🔎 Lookup Player", txt = "Search by Citizen ID", params = { event = "qb-growupgrades:client:lookupPlayerIntel" } },
+                { header = "🪖 Evidence Log", txt = "Browse confiscated items", params = { event = "qb-growupgrades:client:viewEvidence" } },
+                { header = "🚁 Drone Scan", txt = "Scan heroin field", params = { event = "qb-growupgrades:client:launchDrone" } },
+            })
+        end
+
+        RegisterNetEvent("qb-growupgrades:client:tabletHeatMenu", function()
+            local heatList = lib.callback.await("qb-growupgrades:server:getHeatList", false)
+            if not heatList or #heatList == 0 then
+                QBCore.Functions.Notify("No flagged players.", "info")
+                return
+            end
+            local menu = {
+                { header = "Back to Tablet", txt = "Return to main menu", params = { event = "deatablet" } },
+                { header = "Flagged Player List", isMenuHeader = true }
+            }
+            for _, v in ipairs(heatList) do
+                table.insert(menu, {
+                    header = string.format("%s | Heat: %d", v.id, v.heat),
+                    txt = "📍 GPS | 🚨 Raid",
+                    params = { event = "qb-growupgrades:client:tabletSuspectAction", args = v }
                 })
             end
+            exports['qb-menu']:openMenu(menu)
+        end)
 
-            -- Open the tablet UI with the flagged players
-            exports['qb-menu']:openMenu({
-                { header = "Flagged Players", isMenuHeader = true },
-                table.unpack(playerList)
-            })
-        else
-            QBCore.Functions.Notify("No flagged players found.", "info")
-        end
+        openMainTablet()
     end)
-end)
-
-RegisterNetEvent("qb-growupgrades:client:tabletHeatMenu", function()
-    local heatList = lib.callback.await("qb-growupgrades:server:getHeatList", false)
-    local menu = {}
-
-    for _, v in ipairs(heatList) do
-        table.insert(menu, {
-            header = string.format("ID: %s | Heat: %d", v.id, v.heat),
-            txt = "📍 GPS | 🚨 Raid",
-            params = {
-                event = "qb-growupgrades:client:tabletSuspectAction",
-                args = v
-            }
-        })
-    end
-
-    exports['qb-menu']:openMenu(menu)
-end)
-
-RegisterNetEvent("qb-growupgrades:client:tabletSuspectAction", function(data)
-    exports['qb-menu']:openMenu({
-        {
-            header = "Set GPS",
-            txt = "Waypoint to grow area",
-            params = {
-                onSelect = function()
-                    SetNewWaypoint(data.coords.x, data.coords.y)
-                    QBCore.Functions.Notify("Waypoint set.")
-                end
-            }
-        },
-        {
-            header = "Trigger Raid",
-            txt = "Mark for DEA raid",
-            params = {
-                isServer = true,
-                event = "qb-growupgrades:server:markForRaid",
-                args = data.id
-            }
-        }
-    })
 end)
 
 RegisterNetEvent("qb-growupgrades:client:lookupPlayerIntel", function()
@@ -254,21 +277,15 @@ RegisterNetEvent("qb-growupgrades:client:spawnDrone", function()
     local playerPed = PlayerPedId()
     local coords = GetEntityCoords(playerPed)
 
-    -- Spawn the drone
     local droneModel = `prop_drone_01`
     RequestModel(droneModel)
-    while not HasModelLoaded(droneModel) do
-        Wait(10)
-    end
+    while not HasModelLoaded(droneModel) do Wait(10) end
 
-    local drone = CreateVehicle(droneModel, coords.x, coords.y, coords.z + 2.0, 0.0, true, false)
+    local drone = CreateObject(droneModel, coords.x, coords.y, coords.z + 2.0, true, true, true)
     SetEntityAsMissionEntity(drone, true, true)
-    SetVehicleEngineOn(drone, true, true, false)
+    PlaceObjectOnGroundProperly(drone)
 
-    -- Attach the player to the drone
-    TaskWarpPedIntoVehicle(playerPed, drone, -1)
-
-    -- Notify the player
+    AttachEntityToEntity(drone, playerPed, GetPedBoneIndex(playerPed, 0x0), 0.0, 0.0, 1.5, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
     QBCore.Functions.Notify("Drone deployed. Use it to scout the area.", "success")
 end)
 

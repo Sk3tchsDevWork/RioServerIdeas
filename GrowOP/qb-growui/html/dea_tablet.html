@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEA Tablet</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0b0c;
+      color: #fff;
+    }
+    .tablet {
+      width: 90vw;
+      height: 90vh;
+      margin: 5vh auto;
+      border: 3px solid #00f7ff;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #1c1c1e;
+    }
+    .tabs {
+      display: flex;
+      background: #121212;
+    }
+    .tab {
+      flex: 1;
+      padding: 1em;
+      text-align: center;
+      cursor: pointer;
+      background: #222;
+    }
+    .tab.active {
+      background: #00f7ff;
+      color: black;
+    }
+    .content {
+      flex: 1;
+      padding: 1em;
+      overflow-y: auto;
+    }
+    .player-entry {
+      margin-bottom: 1em;
+      padding: 1em;
+      background: #2b2b2e;
+      border-radius: 8px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 20px;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="tablet">
+    <div class="tabs">
+      <div class="tab active" data-tab="flagged">Flagged</div>
+      <div class="tab" data-tab="lookup">Lookup</div>
+      <div class="tab" data-tab="evidence">Evidence</div>
+      <div class="tab" data-tab="drone">Drone</div>
+    </div>
+    <div class="content" id="tab-content"></div>
+  </div>
+  <div class="close-btn" onclick="closeTablet()">✖</div>
+
+  <script>
+    const tabs = document.querySelectorAll(".tab");
+    const content = document.getElementById("tab-content");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        loadTab(tab.dataset.tab);
+      });
+    });
+
+    function loadTab(tab) {
+      switch(tab) {
+        case 'flagged':
+          content.innerHTML = '<h2>Flagged Players</h2><div class="player-entry">Name: John Doe | Heat: 95 <br> <button onclick="setWaypoint()">Set GPS</button> <button onclick="raidPlayer()">Trigger Raid</button></div>';
+          break;
+        case 'lookup':
+          content.innerHTML = '<h2>Lookup Player</h2><input placeholder="Citizen ID" /><button>Search</button>';
+          break;
+        case 'evidence':
+          content.innerHTML = '<h2>Evidence Log</h2><ul><li>[CID1234] - meth_bag</li><li>[CID5678] - grow_docs</li></ul>';
+          break;
+        case 'drone':
+          content.innerHTML = '<h2>Drone Scan</h2><button onclick="launchDrone()">Start Scan</button>';
+          break;
+      }
+    }
+
+    function closeTablet() {
+      fetch(`https://${GetParentResourceName()}/closeTablet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+    }
+
+    function setWaypoint() {
+      fetch(`https://${GetParentResourceName()}/setWaypoint`, {
+        method: 'POST',
+        body: JSON.stringify({ x: 1000, y: 2000 })
+      });
+    }
+
+    function raidPlayer() {
+      fetch(`https://${GetParentResourceName()}/triggerRaid`, {
+        method: 'POST',
+        body: JSON.stringify({ playerId: 42 })
+      });
+    }
+
+    function launchDrone() {
+      fetch(`https://${GetParentResourceName()}/launchDrone`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
+    }
+
+    loadTab("flagged");
+  </script>
+</body>
+</html>
