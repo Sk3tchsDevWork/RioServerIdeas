@@ -138,8 +138,8 @@ end, false)
 
 
 QBCore.Functions.CreateCallback("qb-growupgrades:server:getTabletData", function(source, cb)
-    local results = MySQL.query.await('SELECT citizenid, heat, last_known_coords FROM player_heat WHERE heat >= ?', { Config.HeatThreshold })
     local flagged = {}
+    local results = MySQL.query.await('SELECT citizenid, heat, last_known_coords FROM player_heat WHERE heat >= ?', { Config.HeatThreshold })
 
     for _, row in ipairs(results) do
         table.insert(flagged, {
@@ -149,10 +149,27 @@ QBCore.Functions.CreateCallback("qb-growupgrades:server:getTabletData", function
         })
     end
 
+    local evidenceResults = MySQL.query.await('SELECT cid, item FROM grow_evidence ORDER BY timestamp DESC LIMIT 50')
+    local evidence = {}
+    for _, ev in ipairs(evidenceResults) do
+        table.insert(evidence, {
+            cid = ev.cid,
+            item = ev.item
+        })
+    end
+
     cb({
         flagged = flagged,
-        evidence = {}, -- Placeholder for evidence logs
+        evidence = evidence,
         user = GetPlayerName(source)
     })
 end)
+
+
+function LogEvidence(citizenid, item)
+    MySQL.insert.await("INSERT INTO grow_evidence (cid, item, timestamp) VALUES (?, ?, ?)", {
+        citizenid, item, os.time()
+    })
+end
+
 

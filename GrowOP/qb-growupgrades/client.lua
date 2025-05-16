@@ -30,12 +30,13 @@ RegisterCommand("deatablet", function()
             return
         end
 
-        -- Replace qb-menu with NUI
-        SetNuiFocus(true, true)
-        SendNUIMessage({
-            action = "openTablet",
-            data = {} -- You can inject suspect lists, evidence logs, etc. here
-        })
+        QBCore.Functions.TriggerCallback("qb-growupgrades:server:getTabletData", function(tabletData)
+            SendNUIMessage({
+                action = "openTablet",
+                data = tabletData
+            })
+            SetNuiFocus(true, true)
+        end)
     end)
 end)
 

@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS `grow_evidence` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `cid` VARCHAR(64) NOT NULL,
+  `item` VARCHAR(128) NOT NULL,
+  `timestamp` INT NOT NULL,
+  PRIMARY KEY (`id`)
+);
