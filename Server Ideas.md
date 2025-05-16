@@ -1,5 +1,3 @@
-Here’s a clean, **markdown-formatted version** of your debate + concept structure for documentation, forums, Discord, or internal use:
-
 ---
 
 ## 🧠 Design Proposal: Split Drug Gameplay into Territories & Properties
