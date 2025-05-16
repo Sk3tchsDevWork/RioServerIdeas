@@ -136,3 +136,23 @@ RegisterCommand("debugPlantList", function(source)
     end
 end, false)
 
+
+QBCore.Functions.CreateCallback("qb-growupgrades:server:getTabletData", function(source, cb)
+    local results = MySQL.query.await('SELECT citizenid, heat, last_known_coords FROM player_heat WHERE heat >= ?', { Config.HeatThreshold })
+    local flagged = {}
+
+    for _, row in ipairs(results) do
+        table.insert(flagged, {
+            id = row.citizenid,
+            heat = row.heat,
+            coords = json.decode(row.last_known_coords or '{}')
+        })
+    end
+
+    cb({
+        flagged = flagged,
+        evidence = {}, -- Placeholder for evidence logs
+        user = GetPlayerName(source)
+    })
+end)
+
