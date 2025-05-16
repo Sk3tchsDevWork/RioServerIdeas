@@ -109,11 +109,16 @@
       } else if (tab === 'lookup') {
         content.innerHTML = '<h2>Lookup Player</h2><input id="lookup-input" placeholder="Citizen ID" /><button onclick="searchPlayer()">Search</button>';
       } else if (tab === 'evidence') {
-        content.innerHTML = '<h2>Evidence Log</h2><ul>';
+        content.innerHTML = '<h2>Evidence Log</h2>';
+        if (!tabletData.evidence || tabletData.evidence.length === 0) {
+          content.innerHTML += '<p>No evidence found.</p>';
+        } else {
+          content.innerHTML += '<ul>';
         tabletData.evidence.forEach(e => {
           content.innerHTML += `<li>[${e.cid}] - ${e.item}</li>`;
         });
         content.innerHTML += '</ul>';
+        }
       } else if (tab === 'drone') {
         content.innerHTML = '<h2>Drone Scan</h2><button onclick="launchDrone()">Start Scan</button>';
       }
