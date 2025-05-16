@@ -97,3 +97,17 @@ RegisterNetEvent("ox-cartel:completeLaunderJob", function()
         type = "success"
     })
 end)
+
+RegisterNetEvent("ox-cartel:triggerAmbush", function(coords)
+    for _, id in pairs(QBCore.Functions.GetPlayers()) do
+        local p = QBCore.Functions.GetPlayer(id)
+        if p and p.PlayerData.job.name == "dea" then
+            TriggerClientEvent("ox_lib:notify", id, {
+                title = "DEA Alert",
+                description = "High-value laundering drop detected!",
+                type = "alert"
+            })
+            TriggerClientEvent("ox-cartel:deaBlip", id, coords)
+        end
+    end
+end)
