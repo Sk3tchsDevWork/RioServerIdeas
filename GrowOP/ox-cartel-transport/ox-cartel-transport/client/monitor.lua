@@ -11,14 +11,14 @@ CreateThread(function()
                 lib.callback('ox_inventory:getInventoryItems', false, function(items)
                     local drugCount = 0
                     for _, item in pairs(items or {}) do
-                        if lib.table.contains(Config.DrugItems, item.name) then
+                        if lib.table.contains(Config.DrugItems, item.name) and not item.metadata or not item.metadata.hidden then
                             drugCount += item.count
                         end
                     end
 
                     if drugCount >= Config.HighRiskThreshold then
                         highRiskFlagged = true
-                        TriggerServerEvent("ox-cartel-transport:triggerHeat")
+                        TriggerServerEvent("ox-cartel-transport:triggerHeat", plate, GetEntityCoords(vehicle))
                         lib.notify({
                             title = "Cartel Transport",
                             description = "Your stash van has been flagged as high risk.",
