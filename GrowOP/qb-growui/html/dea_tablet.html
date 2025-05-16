@@ -73,6 +73,14 @@
   <script>
     const tabs = document.querySelectorAll(".tab");
     const content = document.getElementById("tab-content");
+    let tabletData = { flagged: [], evidence: [] };
+
+    window.addEventListener("message", (event) => {
+      if (event.data.action === "openTablet") {
+        tabletData = event.data.data || {};
+        loadTab("flagged");
+      }
+    });
 
     tabs.forEach(tab => {
       tab.addEventListener("click", () => {
@@ -83,19 +91,31 @@
     });
 
     function loadTab(tab) {
-      switch(tab) {
-        case 'flagged':
-          content.innerHTML = '<h2>Flagged Players</h2><div class="player-entry">Name: John Doe | Heat: 95 <br> <button onclick="setWaypoint()">Set GPS</button> <button onclick="raidPlayer()">Trigger Raid</button></div>';
-          break;
-        case 'lookup':
-          content.innerHTML = '<h2>Lookup Player</h2><input placeholder="Citizen ID" /><button>Search</button>';
-          break;
-        case 'evidence':
-          content.innerHTML = '<h2>Evidence Log</h2><ul><li>[CID1234] - meth_bag</li><li>[CID5678] - grow_docs</li></ul>';
-          break;
-        case 'drone':
-          content.innerHTML = '<h2>Drone Scan</h2><button onclick="launchDrone()">Start Scan</button>';
-          break;
+      if (tab === 'flagged') {
+        content.innerHTML = '<h2>Flagged Players</h2>';
+        if (!tabletData.flagged || tabletData.flagged.length === 0) {
+          content.innerHTML += '<p>No flagged players found.</p>';
+        } else {
+          tabletData.flagged.forEach(p => {
+            content.innerHTML += `
+              <div class="player-entry">
+                <strong>ID:</strong> ${p.id} <strong>Heat:</strong> ${p.heat}<br>
+                <button onclick="setWaypoint(${p.coords.x}, ${p.coords.y})">📍 Set GPS</button>
+                <button onclick="raidPlayer('${p.id}')">🚨 Trigger Raid</button>
+              </div>
+            `;
+          });
+        }
+      } else if (tab === 'lookup') {
+        content.innerHTML = '<h2>Lookup Player</h2><input id="lookup-input" placeholder="Citizen ID" /><button onclick="searchPlayer()">Search</button>';
+      } else if (tab === 'evidence') {
+        content.innerHTML = '<h2>Evidence Log</h2><ul>';
+        tabletData.evidence.forEach(e => {
+          content.innerHTML += `<li>[${e.cid}] - ${e.item}</li>`;
+        });
+        content.innerHTML += '</ul>';
+      } else if (tab === 'drone') {
+        content.innerHTML = '<h2>Drone Scan</h2><button onclick="launchDrone()">Start Scan</button>';
       }
     }
 
@@ -107,17 +127,17 @@
       });
     }
 
-    function setWaypoint() {
+    function setWaypoint(x, y) {
       fetch(`https://${GetParentResourceName()}/setWaypoint`, {
         method: 'POST',
-        body: JSON.stringify({ x: 1000, y: 2000 })
+        body: JSON.stringify({ x, y })
       });
     }
 
-    function raidPlayer() {
+    function raidPlayer(playerId) {
       fetch(`https://${GetParentResourceName()}/triggerRaid`, {
         method: 'POST',
-        body: JSON.stringify({ playerId: 42 })
+        body: JSON.stringify({ playerId })
       });
     }
 
@@ -128,7 +148,32 @@
       });
     }
 
-    loadTab("flagged");
+    function searchPlayer() {
+      const cid = document.getElementById("lookup-input").value;
+      if (cid) {
+        fetch(`https://${GetParentResourceName()}/lookupPlayerIntel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.found) {
+            content.innerHTML = `
+              <h2>Player Intel</h2>
+              <div class="player-entry">
+                <strong>Heat:</strong> ${data.heat}<br>
+                <strong>Last Crop:</strong> ${data.lastCrop}<br>
+                <button onclick="setWaypoint(${data.coords.x}, ${data.coords.y})">📍 Set GPS</button>
+              </div>
+              <button onclick="loadTab('lookup')">Back</button>
+            `;
+          } else {
+            content.innerHTML = `<h2>Lookup Player</h2><p>No data found for ${cid}.</p><button onclick=\"loadTab('lookup')\">Try Again</button>`;
+          }
+        });
+      }
+    }
   </script>
 </body>
 </html>
