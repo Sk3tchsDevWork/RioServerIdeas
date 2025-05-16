@@ -1,5 +1,3 @@
----
-
 ## 🧠 Design Proposal: Split Drug Gameplay into Territories & Properties
 
 ### 🎯 Goal:
