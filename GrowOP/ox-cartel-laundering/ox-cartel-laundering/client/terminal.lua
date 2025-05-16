@@ -15,6 +15,36 @@ CreateThread(function()
             }
         })
     end
+
+    exports.ox_target:addBoxZone({
+        coords = Config.Exchange.coords,
+        size = vec3(1.5, 1.5, 1.5),
+        rotation = 45,
+        debug = false,
+        options = {
+            {
+                name = "crypto_exchange",
+                icon = "fas fa-hand-holding-usd",
+                label = "Exchange Crypto to Cash",
+                event = "ox-cartel:exchangeCrypto"
+            }
+        }
+    })
+
+    exports.ox_target:addBoxZone({
+        coords = Config.LaunderMissions.start,
+        size = vec3(1.5, 1.5, 1.5),
+        rotation = 45,
+        debug = false,
+        options = {
+            {
+                name = "launder_mission",
+                icon = "fas fa-truck",
+                label = "Start Launder Delivery",
+                event = "ox-cartel:startLaunderJob"
+            }
+        }
+    })
 end)
 
 RegisterNetEvent("ox-cartel:launder", function()
@@ -25,4 +55,16 @@ RegisterNetEvent("ox-cartel:launder", function()
         end
         TriggerServerEvent("ox-cartel:launderAttempt", count)
     end, Config.AllowedItem)
+end)
+
+RegisterNetEvent("ox-cartel:exchangeCrypto", function()
+    TriggerServerEvent("ox-cartel:exchangeWallet")
+end)
+
+RegisterNetEvent("ox-cartel:startLaunderJob", function()
+    TriggerServerEvent("ox-cartel:startLaunderJob")
+end)
+
+RegisterNetEvent("ox-cartel:deliverLaunderItem", function()
+    TriggerServerEvent("ox-cartel:completeLaunderJob")
 end)
