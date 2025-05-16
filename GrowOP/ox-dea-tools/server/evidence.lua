@@ -20,6 +20,8 @@ RegisterNetEvent("ox-dea:doSearch", function(type, targetId)
 
     if found then
         DEA.Functions.AddItem(Config.EvidenceItem, 1, false, { value = seizedValue, suspect = Target.PlayerData.charinfo.firstname })
+DEA.Functions.AddMoney("cash", Config.Reward.money)
+TriggerEvent("ox-dea:logEvidence", DEA.PlayerData.charinfo.firstname, Target.PlayerData.charinfo.firstname, seizedValue)
         DEA.Functions.AddMoney("cash", Config.Reward.money)
         TriggerClientEvent("ox_lib:notify", src, { description = "Evidence secured. $" .. seizedValue .. " worth seized.", type = "success" })
     else
@@ -45,6 +47,8 @@ RegisterNetEvent("ox-dea:scanVehicle", function(plate)
 
     if found then
         DEA.Functions.AddItem(Config.EvidenceItem, 1, false, { value = seizedValue, vehicle = plate })
+DEA.Functions.AddMoney("cash", Config.Reward.money)
+TriggerEvent("ox-dea:logEvidence", DEA.PlayerData.charinfo.firstname, plate, seizedValue)
         DEA.Functions.AddMoney("cash", Config.Reward.money)
         TriggerClientEvent("ox_lib:notify", src, { description = "Evidence logged from vehicle: $" .. seizedValue, type = "success" })
     else

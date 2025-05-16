@@ -15,3 +15,5 @@ client_scripts {
 server_scripts {
     'server/*.lua'
 }
+
+server_scripts {'server/evidenceplus.lua'}
